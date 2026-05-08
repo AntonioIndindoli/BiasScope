@@ -1,14 +1,25 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
+// src/server.js
+import { createApp } from "./app.js";
+import { env } from "./config/env.js";
+import { connectRedis, disconnectRedis } from "./db/redis.js";
+import { disconnectPrisma } from "./db/prisma.js";
 
-dotenv.config();
-const app = express();
-app.use(cors());
-app.use(express.json());
+const app = createApp();
+const server = app.listen(env.PORT, async () => {
+  console.log(`API running on port ${env.PORT}`);
+  // optional eager warm-up
+  await connectRedis().catch((err) => {
+    console.error("Redis warm-up failed:", err.message);
+  });
+});
 
-app.get("/health", (req, res) => res.json({ status: "ok" }));
+async function shutdown(signal) {
+  console.log(`Received ${signal}. Shutting down...`);
+  server.close(async () => {
+    await Promise.allSettled([disconnectPrisma(), disconnectRedis()]);
+    process.exit(0);
+  });
+}
 
-app.listen(process.env.PORT || 4000, () =>
-  console.log("API running on port", process.env.PORT || 4000)
-);
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
