@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getLiveness, getReadiness } from "../controllers/health.controller.js";
+import { getLiveness, getReadiness } from "../controllers/health.controllers.js";
 
 const router = Router();
 

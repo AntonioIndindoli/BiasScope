@@ -1,4 +1,4 @@
-import { healthService } from "../services/health.service.js";
+import { healthService } from "../services/health.services.js";
 
 export async function getLiveness(req, res) {
   const result = healthService.liveness();
