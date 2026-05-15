@@ -1,5 +1,4 @@
-import { Prisma } from "@prisma/client";
-import { getPrisma } from "../db/prisma.js";
+import { getPrismaAsync } from "../db/prisma.js";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -128,13 +127,13 @@ export const articlesService = {
   parsePagination,
 
   async createArticle(payload) {
-    const client = getPrisma();
+    const client = await getPrismaAsync();
 
     try {
       const article = await client.article.create({ data: payload });
       return { created: true, article: toArticleDto(article) };
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      if (error?.code === "P2002") {
         const existing = await client.article.findFirst({
           where: {
             OR: [
@@ -157,7 +156,7 @@ export const articlesService = {
   },
 
   async listArticles({ limit, offset }) {
-    const client = getPrisma();
+    const client = await getPrismaAsync();
 
     const [rows, total] = await Promise.all([
       client.article.findMany({
