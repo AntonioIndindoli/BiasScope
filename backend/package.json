@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "npm run prisma:generate && nodemon src/server.js",
     "start": "npm run prisma:generate && node src/server.js",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "ingest:rss": "node src/workers/rssIngestion.job.js"
   },
   "keywords": [],
   "author": "",
