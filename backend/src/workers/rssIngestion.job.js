@@ -1,8 +1,9 @@
 import { parseRssFeed } from "../adapters/rss.adapter.js";
+import "dotenv/config";
 
 const FEED_URL = process.env.RSS_FEED_URL ?? "https://feeds.bbci.co.uk/news/world/rss.xml";
 const SOURCE_NAME = process.env.RSS_SOURCE_NAME ?? "BBC World";
-const API_BASE_URL = process.env.INGEST_API_BASE_URL ?? "http://localhost:5000";
+const API_BASE_URL = process.env.INGEST_API_BASE_URL ?? "http://localhost:4000";
 const API_ENDPOINT = `${API_BASE_URL.replace(/\/$/, "")}/articles`;
 const MAX_RETRIES = Number.parseInt(process.env.INGEST_MAX_RETRIES ?? "3", 10);
 
