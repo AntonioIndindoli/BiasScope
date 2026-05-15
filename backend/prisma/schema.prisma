@@ -12,12 +12,64 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum BiasLabel {
+  LEFT
+  LEAN_LEFT
+  CENTER
+  LEAN_RIGHT
+  RIGHT
+  MIXED
+  UNKNOWN
+}
+
 model Article {
-  id          String  @id @default(cuid())
-  url         String  @unique
+  id           String  @id @default(cuid())
+  externalId   String? @unique
+  url          String  @unique
+  canonicalUrl String?
+  source       String
+  domain       String?
+
   title       String
-  text        String?
-  source      String
+  subtitle    String?
+  description String?
+  author      String?
+  imageUrl    String?
+  language    String   @default("en")
+  section     String?
+  tags        String[] @default([])
+
+  text           String?
+  summary        String?
+  wordCount      Int?
+  readingMinutes Int?
+
+  status         ArticleStatus @default(PUBLISHED)
+  biasLabel      BiasLabel     @default(UNKNOWN)
+  biasScore      Float?
+  sentimentScore Float?
+  sentimentLabel String?
+
+  clusterId        String?
+  embeddingModel   String?
+  embeddingVersion String?
+
   publishedAt DateTime
-  createdAt   DateTime @default(now())
+  scrapedAt   DateTime?
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([publishedAt])
+  @@index([source, publishedAt])
+  @@index([domain, publishedAt])
+  @@index([status])
+  @@index([biasLabel])
+  @@index([clusterId])
 }
