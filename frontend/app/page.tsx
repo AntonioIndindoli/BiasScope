@@ -21,7 +21,7 @@ type ArticlesResponse = {
 };
 
 const PAGE_SIZE = 10;
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000";
 
 function formatPublishedDate(dateString: string) {
   const date = new Date(dateString);

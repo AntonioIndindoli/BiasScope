@@ -110,7 +110,7 @@ docker-compose up --build
 
 App will run at:
 
-* Backend: `http://localhost:5000`
+* Backend: `http://localhost:4000`
 * Frontend: `http://localhost:3000`
 
 ---
@@ -128,7 +128,7 @@ node scraper/rss-scraper.js
 ## Testing
 
 ```
-curl http://localhost:5000/api/health
+curl http://localhost:4000/api/health
 npm run test
 ```
 
