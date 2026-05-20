@@ -1,8 +1,7 @@
 import { parseRssFeed } from "../adapters/rss.adapter.js";
+import { getIngestionSources } from "../config/sources.js";
 import "dotenv/config";
 
-const FEED_URL = process.env.RSS_FEED_URL ?? "https://feeds.bbci.co.uk/news/world/rss.xml";
-const SOURCE_NAME = process.env.RSS_SOURCE_NAME ?? "BBC World";
 const API_BASE_URL = process.env.INGEST_API_BASE_URL ?? "http://localhost:4000";
 const API_ENDPOINT = `${API_BASE_URL.replace(/\/$/, "")}/articles`;
 const MAX_RETRIES = Number.parseInt(process.env.INGEST_MAX_RETRIES ?? "3", 10);
@@ -43,17 +42,18 @@ async function postArticle(article) {
     return { ok: false, error: lastError };
 }
 
-async function run() {
-    console.info(`[ingest] fetching RSS feed: ${FEED_URL}`);
-    const response = await fetch(FEED_URL);
+async function ingestSource(source) {
+    console.info(`[ingest] fetching RSS feed for ${source.name}: ${source.feedUrl}`);
+
+    const response = await fetch(source.feedUrl);
     if (!response.ok) {
         throw new Error(`Failed to fetch RSS feed. status=${response.status}`);
     }
 
     const xml = await response.text();
-    const articles = parseRssFeed(xml, SOURCE_NAME);
+    const articles = parseRssFeed(xml, source.name);
 
-    console.info(`[ingest] parsed ${articles.length} entries`);
+    console.info(`[ingest] parsed ${articles.length} entries for ${source.name}`);
 
     let created = 0;
     let duplicates = 0;
@@ -71,9 +71,45 @@ async function run() {
         if (result.status === 409) duplicates += 1;
     }
 
-    console.info(`[ingest] done. created=${created} duplicates=${duplicates} failed=${failed}`);
+    return {
+        source: source.name,
+        total: articles.length,
+        created,
+        duplicates,
+        failed,
+    };
+}
 
-    if (failed > 0) {
+async function run() {
+    const sources = getIngestionSources();
+
+    if (sources.length === 0) {
+        throw new Error("No ingestion sources configured. Set RSS_SOURCES_JSON to a non-empty JSON array.");
+    }
+
+    let totalCreated = 0;
+    let totalDuplicates = 0;
+    let totalFailed = 0;
+
+    for (const source of sources) {
+        try {
+            const result = await ingestSource(source);
+            totalCreated += result.created;
+            totalDuplicates += result.duplicates;
+            totalFailed += result.failed;
+
+            console.info(
+                `[ingest] source=${result.source} total=${result.total} created=${result.created} duplicates=${result.duplicates} failed=${result.failed}`
+            );
+        } catch (error) {
+            totalFailed += 1;
+            console.error(`[ingest] source failed: ${source.name}`, error);
+        }
+    }
+
+    console.info(`[ingest] done. created=${totalCreated} duplicates=${totalDuplicates} failed=${totalFailed}`);
+
+    if (totalFailed > 0) {
         process.exitCode = 1;
     }
 }

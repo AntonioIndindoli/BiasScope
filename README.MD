@@ -102,6 +102,17 @@ cd BiasScope
 
 Copy `.env.example` in both **backend/** and **frontend/**.
 
+
+### **Multi-source RSS ingestion**
+
+Configure RSS ingestion with `RSS_SOURCES_JSON`. A ready-to-edit sample file is included at `backend/RSS_SOURCES_JSON.json`.
+
+```
+export RSS_SOURCES_JSON="$(cat backend/RSS_SOURCES_JSON.json)"
+```
+
+Only entries with `enabled: true` are ingested. If `RSS_SOURCES_JSON` is missing, invalid, or all entries are disabled, the worker exits with an error.
+
 ### **3. Run with Docker**
 
 ```
